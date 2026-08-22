@@ -1,0 +1,411 @@
+.chatWindow {
+    background: var(--bg);
+    height: 100%;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    transition: background 0.4s ease;
+}
+
+/* Navbar */
+
+.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 1.4rem;
+    flex-shrink: 0;
+}
+
+.navbarLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.iconBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.iconBtn:hover {
+    background: var(--panel);
+    color: var(--paper);
+}
+
+.modelTag {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--paper);
+    cursor: pointer;
+}
+
+.modelVersion {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--faint);
+}
+
+.userIconDiv {
+    cursor: pointer;
+}
+
+.userIcon {
+    background: var(--gradient);
+    color: var(--on-accent);
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dropdown */
+
+.dropDown {
+    position: absolute;
+    top: 3.6rem;
+    right: 1.4rem;
+    width: 210px;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    text-align: left;
+    z-index: 1000;
+    box-shadow: var(--shadow-md);
+    animation: popIn 0.15s ease;
+}
+
+.dropDownLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding: 0.35rem 0.6rem 0.5rem;
+}
+
+.swatchRow {
+    display: flex;
+    gap: 0.55rem;
+    padding: 0 0.6rem 0.6rem;
+}
+
+.swatch {
+    height: 26px;
+    width: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    outline: 1px solid var(--border-strong);
+    outline-offset: 2px;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.12s ease, outline-color 0.12s ease;
+}
+
+.swatch:hover {
+    transform: scale(1.12);
+}
+
+.swatch--active {
+    outline-color: var(--paper);
+}
+
+.dropDownDivider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.35rem 0.4rem;
+}
+
+.dropDownItem {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.1rem 0;
+    padding: 0.55rem 0.6rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.dropDownItem span:not(.toggle) {
+    flex: 1;
+}
+
+.dropDownItem:hover {
+    background: var(--panel-2);
+    color: var(--paper);
+}
+
+.dropDownItem--danger:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.toggle {
+    width: 32px;
+    height: 18px;
+    border-radius: var(--radius-pill);
+    background: var(--panel-2);
+    border: 1px solid var(--border-strong);
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.toggle::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--faint);
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.toggle--on {
+    background: var(--gradient);
+    border-color: transparent;
+}
+
+.toggle--on::after {
+    transform: translateX(14px);
+    background: var(--on-accent);
+}
+
+/* Hero / empty state */
+
+.hero {
+    flex: 1;
+    width: 100%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.heroMark {
+    margin-bottom: 1.6rem;
+    opacity: 0.95;
+}
+
+.heroTitle {
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    font-style: italic;
+}
+
+.heroSub {
+    margin-top: 0.7rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.starterRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 2.2rem;
+}
+
+.starterChip {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.starterChip:hover {
+    border-color: var(--accent-ring);
+    color: var(--paper);
+}
+
+/* Thinking indicator */
+
+.thinking {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0 0 0.7rem;
+}
+
+.thinkingBlob {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    background: var(--gradient);
+    animation: blobMorph 2.4s ease-in-out infinite, thinkPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes thinkPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+}
+
+.thinkingText {
+    font-size: 0.82rem;
+    color: var(--faint);
+    font-style: italic;
+}
+
+/* Chat input */
+
+.chatInput {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0 1.4rem 1.4rem;
+}
+
+.inputBox {
+    width: 100%;
+    position: relative;
+    max-width: 900px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inputBox input {
+    width: 100%;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--paper);
+    padding: 0.95rem 5.4rem 0.95rem 1.15rem;
+    font-size: 0.88rem;
+    font-family: var(--font-sans);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inputBox input::placeholder {
+    color: var(--faint);
+}
+
+.inputBox input:focus {
+    outline: none;
+    border-color: var(--accent-ring);
+    box-shadow: 0 0 0 4px var(--accent-soft), var(--shadow-md);
+}
+
+.inputActions {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.micBtn {
+    position: relative;
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--panel-2);
+    color: var(--muted);
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.micBtn:hover {
+    background: var(--border-strong);
+    color: var(--paper);
+}
+
+.micBtn--active {
+    background: var(--gradient);
+    color: var(--on-accent);
+}
+
+.micPulse {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--grad-a);
+    animation: pulseRing 1.4s ease-out infinite;
+}
+
+#submit {
+    cursor: pointer;
+    height: 34px;
+    width: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient);
+    color: var(--on-accent);
+    border: none;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: filter 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+}
+
+#submit:hover:not(:disabled) {
+    filter: brightness(1.08);
+}
+
+#submit:active:not(:disabled) {
+    transform: scale(0.94);
+}
+
+#submit:disabled {
+    background: var(--panel-2);
+    color: var(--faint);
+    cursor: not-allowed;
+}
+
+.info {
+    font-size: 0.75rem;
+    padding-top: 0.7rem;
+    color: var(--faint);
+}
+
+@media (max-width: 768px) {
+    .heroTitle {
+        font-size: 1.6rem;
+    }
+}

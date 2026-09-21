@@ -2,30 +2,23 @@ import "./Sidebar.css";
 import { useContext, useEffect } from "react";
 import { MyContext } from "./MyContext.jsx";
 import { v1 as uuidv1 } from "uuid";
-import { IconCompose, IconTrash } from "./Icons.jsx";
+import { IconCompose, IconTrash } from "./icons.jsx";
 import Logo from "./Logo.jsx";
+import { api } from "./utils/api.js";
 
 function Sidebar() {
     const {
         allThreads, setAllThreads,
         currThreadId, setCurrThreadId,
         setNewChat, setPrompt, setReply, setPrevChats,
-        sidebarOpen, token,
+        sidebarOpen,
     } = useContext(MyContext);
 
-    const authHeaders = { "Authorization": `Bearer ${token}` };
-
     const getAllThreads = async () => {
-        if (!token) return;
         try {
-            const response = await fetch("http://localhost:8080/api/thread", {
-                headers: authHeaders
-            });
+            const response = await api.get("/api/thread");
+            if (!response.ok) return;
             const res = await response.json();
-            if (!response.ok || !Array.isArray(res)) {
-                console.log("Failed to load threads:", res);
-                return;
-            }
             const filteredData = res.map(thread => ({ threadId: thread.threadId, title: thread.title }));
             setAllThreads(filteredData);
         } catch (err) {
@@ -35,7 +28,7 @@ function Sidebar() {
 
     useEffect(() => {
         getAllThreads();
-    }, [currThreadId, token]);
+    }, [currThreadId]);
 
     const createNewChat = () => {
         setNewChat(true);
@@ -48,9 +41,8 @@ function Sidebar() {
     const changeThread = async (newThreadId) => {
         setCurrThreadId(newThreadId);
         try {
-            const response = await fetch(`http://localhost:8080/api/thread/${newThreadId}`, {
-                headers: authHeaders
-            });
+            const response = await api.get(`/api/thread/${newThreadId}`);
+            if (!response.ok) return;
             const res = await response.json();
             setPrevChats(res);
             setNewChat(false);
@@ -62,10 +54,8 @@ function Sidebar() {
 
     const deleteThread = async (threadId) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/thread/${threadId}`, {
-                method: "DELETE",
-                headers: authHeaders
-            });
+            const response = await api.del(`/api/thread/${threadId}`);
+            if (!response.ok) return;
             await response.json();
             setAllThreads(prev => prev.filter(thread => thread.threadId !== threadId));
             if (threadId === currThreadId) {

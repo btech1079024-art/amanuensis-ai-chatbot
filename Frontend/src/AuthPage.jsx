@@ -1,106 +1,121 @@
 import "./AuthPage.css";
-import { useState, useContext } from "react";
-import { MyContext } from "./MyContext.jsx";
+import { useState } from "react";
 import Logo from "./Logo.jsx";
+import { api, setToken } from "./utils/api.js";
 
-function AuthPage() {
-    const { setUser, setToken } = useContext(MyContext);
-    const [mode, setMode] = useState("login");
+function AuthPage({ onAuth }) {
+    const [mode, setMode] = useState("login"); // "login" | "signup"
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const isSignup = mode === "signup";
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
 
-        if (mode === "signup" && !name.trim()) {
-            setError("Please enter your name");
+        if (isSignup && !name.trim()) {
+            setError("Please enter your name.");
             return;
         }
         if (!email.trim() || !password) {
-            setError("Please fill in all fields");
+            setError("Please fill in every field.");
             return;
         }
 
         setLoading(true);
         try {
-            const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/signup";
-            const body = mode === "login" ? { email, password } : { name, email, password };
-
-            const response = await fetch(`http://localhost:8080${endpoint}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
+            const path = isSignup ? "/api/auth/signup" : "/api/auth/login";
+            const body = isSignup ? { name, email, password } : { email, password };
+            const response = await api.post(path, body);
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Something went wrong");
+                setError(data.error || "Something went wrong. Please try again.");
                 setLoading(false);
                 return;
             }
 
-            localStorage.setItem("amanuensis_token", data.token);
-            localStorage.setItem("amanuensis_user", JSON.stringify(data.user));
             setToken(data.token);
-            setUser(data.user);
+            onAuth(data.user);
         } catch (err) {
             console.log(err);
-            setError("Could not connect to the server");
+            setError("Couldn't reach the server. Is the backend running?");
+            setLoading(false);
         }
-        setLoading(false);
+    };
+
+    const switchMode = () => {
+        setMode(isSignup ? "login" : "signup");
+        setError("");
     };
 
     return (
         <div className="authPage">
-            <div className="authCard">
-                <div className="authLogo">
-                    <Logo size={44} />
-                </div>
-                <h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
+            <div className="authBlobs" aria-hidden="true">
+                <span className="authBlob authBlob--a" />
+                <span className="authBlob authBlob--b" />
+            </div>
+
+            <form className="authCard" onSubmit={handleSubmit}>
+                <Logo size={44} animated />
+                <h1 className="authTitle">{isSignup ? "Create your account" : "Welcome back"}</h1>
                 <p className="authSub">
-                    {mode === "login" ? "Sign in to continue to Amanuensis" : "Get started with Amanuensis"}
+                    {isSignup
+                        ? "Amanuensis remembers your conversations."
+                        : "Sign in to pick up where you left off."}
                 </p>
 
-                <form onSubmit={handleSubmit} className="authForm">
-                    {mode === "signup" && (
+                {isSignup && (
+                    <label className="authField">
+                        <span>Name</span>
                         <input
-                            type="text"
-                            placeholder="Full name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                            autoComplete="name"
+                            placeholder="Your name"
                         />
-                    )}
+                    </label>
+                )}
+
+                <label className="authField">
+                    <span>Email</span>
                     <input
                         type="email"
-                        placeholder="Email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
+                        placeholder="you@example.com"
                     />
+                </label>
+
+                <label className="authField">
+                    <span>Password</span>
                     <input
                         type="password"
-                        placeholder="Password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        autoComplete={isSignup ? "new-password" : "current-password"}
+                        placeholder="••••••••"
                     />
+                </label>
 
-                    {error && <p className="authError">{error}</p>}
+                {error && <p className="authError">{error}</p>}
 
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Please wait..." : mode === "login" ? "Sign in" : "Sign up"}
+                <button type="submit" className="authSubmit" disabled={loading}>
+                    {loading ? "Please wait…" : isSignup ? "Sign up" : "Log in"}
+                </button>
+
+                <p className="authSwitch">
+                    {isSignup ? "Already have an account?" : "New here?"}{" "}
+                    <button type="button" onClick={switchMode}>
+                        {isSignup ? "Log in" : "Sign up"}
                     </button>
-                </form>
-
-                <p className="authToggle">
-                    {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
-                    <span onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }}>
-                        {mode === "login" ? "Sign up" : "Sign in"}
-                    </span>
                 </p>
-            </div>
+            </form>
         </div>
     );
 }

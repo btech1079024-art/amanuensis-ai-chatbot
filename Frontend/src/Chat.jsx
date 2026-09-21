@@ -2,13 +2,23 @@ import "./Chat.css";
 import { useContext, useState, useEffect, useRef } from "react";
 import { MyContext } from "./MyContext.jsx";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import rehypeHighlight from "rehype-highlight";
+import rehypeKatex from "rehype-katex";
 import "highlight.js/styles/github-dark.css";
+import "katex/dist/katex.min.css";
 import Logo from "./Logo.jsx";
-import { IconCopy, IconCheck, IconVolume, IconVolumeOff, IconRefresh } from "./Icons.jsx";
+import { IconCopy, IconCheck, IconVolume, IconVolumeOff, IconRefresh } from "./icons.jsx";
 import { isVoiceOutputSupported, speak, stopSpeaking } from "./utils/speech.js";
 
 const voiceOutSupported = isVoiceOutputSupported();
+
+const mdComponents = {
+    table: ({ node, ...props }) => (
+        <div className="tableWrap"><table {...props} /></div>
+    ),
+};
 
 function MessageActions({ idx, content, copiedIdx, onCopy, speakingIdx, onReadAloud, showRegenerate, onRegenerate, regenerating }) {
     return (
@@ -111,7 +121,7 @@ function Chat({ onRegenerate, loading }) {
                             <Logo size={24} className="gptAvatar" />
                             <div className="gptMessageCol">
                                 <div className="gptMessage">
-                                    <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{chat.content}</ReactMarkdown>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{chat.content}</ReactMarkdown>
                                 </div>
                                 <MessageActions
                                     idx={idx} content={chat.content}
@@ -132,7 +142,7 @@ function Chat({ onRegenerate, loading }) {
                         <Logo size={24} className="gptAvatar" />
                         <div className="gptMessageCol">
                             <div className="gptMessage">
-                                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{finalContent}</ReactMarkdown>
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{finalContent}</ReactMarkdown>
                             </div>
                             {!isTyping && (
                                 <MessageActions

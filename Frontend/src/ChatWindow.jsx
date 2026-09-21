@@ -6,8 +6,9 @@ import { useContext, useState, useEffect, useRef } from "react";
 import {
     IconMenu, IconChevronDown, IconUser, IconSettings, IconSpark, IconLogout,
     IconSend, IconMic, IconVolume, IconVolumeOff, IconSwatches,
-} from "./Icons.jsx";
+} from "./icons.jsx";
 import { getSpeechRecognition, isVoiceOutputSupported, speak, stopSpeaking } from "./utils/speech.js";
+import { api } from "./utils/api.js";
 
 const STARTERS = [
     "Explain a tricky concept simply",
@@ -16,7 +17,7 @@ const STARTERS = [
 ];
 
 const THEMES = [
-    { id: "violet", label: "Obsidian Gold", preview: "linear-gradient(135deg,#FFD60A,#FFB800)" },
+    { id: "violet", label: "Violet Ink", preview: "linear-gradient(135deg,#8b5cf6,#ff4d6d)" },
     { id: "citrus", label: "Citrus Pop", preview: "linear-gradient(135deg,#c6ff3f,#ff9f3f)" },
     { id: "flame", label: "Flame", preview: "linear-gradient(135deg,#ff4d6d,#ffb13f)" },
     { id: "ocean", label: "Ocean", preview: "linear-gradient(135deg,#3fd4ff,#8b5cf6)" },
@@ -24,19 +25,12 @@ const THEMES = [
 
 const AUTOREAD_KEY = "amanuensis-autoread";
 
-function getGreeting() {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
-}
-
 function ChatWindow() {
     const {
         prompt, setPrompt, reply, setReply, currThreadId,
         setPrevChats, newChat, setNewChat, prevChats,
         sidebarOpen, setSidebarOpen, theme, setTheme,
-        token, user, logout,
+        user, onLogout,
     } = useContext(MyContext);
 
     const [loading, setLoading] = useState(false);
@@ -48,6 +42,7 @@ function ChatWindow() {
     const voiceSupported = !!getSpeechRecognition();
     const voiceOutSupported = isVoiceOutputSupported();
 
+    // Set up voice input once.
     useEffect(() => {
         const SR = getSpeechRecognition();
         if (!SR) return;
@@ -75,6 +70,7 @@ function ChatWindow() {
         localStorage.setItem(AUTOREAD_KEY, String(autoRead));
     }, [autoRead]);
 
+    // Read replies aloud when auto-read is on.
     useEffect(() => {
         if (autoRead && reply) speak(reply);
     }, [reply, autoRead]);
@@ -117,20 +113,9 @@ function ChatWindow() {
         setNewChat(false);
 
         try {
-            const response = await fetch("http://localhost:8080/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ message: prompt, threadId: currThreadId }),
-            });
+            const response = await api.post("/api/chat", { message: prompt, threadId: currThreadId });
+            if (!response.ok) throw new Error("Request failed");
             const res = await response.json();
-            if (!response.ok) {
-                console.log("Chat error:", res);
-                setLoading(false);
-                return;
-            }
             setReply(res.reply);
         } catch (err) {
             console.log(err);
@@ -138,6 +123,7 @@ function ChatWindow() {
         setLoading(false);
     };
 
+    // Append new chat to prevChats
     useEffect(() => {
         if (prompt && reply) {
             setPrevChats(prevChats => ([
@@ -149,6 +135,9 @@ function ChatWindow() {
         setPrompt("");
     }, [reply]);
 
+    // Re-send the last user message and swap the last assistant reply for a
+    // fresh one — deliberately bypasses the reply/prompt state above so it
+    // can't duplicate the user turn.
     const regenerate = async () => {
         if (loading) return;
         const lastUser = [...prevChats].reverse().find(c => c.role === "user");
@@ -156,14 +145,8 @@ function ChatWindow() {
 
         setLoading(true);
         try {
-            const response = await fetch("http://localhost:8080/api/chat", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ message: lastUser.content, threadId: currThreadId }),
-            });
+            const response = await api.post("/api/chat", { message: lastUser.content, threadId: currThreadId });
+            if (!response.ok) throw new Error("Request failed");
             const res = await response.json();
             setPrevChats(prev => {
                 const updated = [...prev];
@@ -186,8 +169,6 @@ function ChatWindow() {
         inputRef.current?.focus();
     };
 
-    const firstName = user?.name?.split(" ")[0] || "there";
-
     return (
         <div className="chatWindow">
             <div className="navbar">
@@ -202,11 +183,22 @@ function ChatWindow() {
                 </div>
 
                 <div className="userIconDiv" onClick={() => setIsOpen(!isOpen)}>
-                    <span className="userIcon"><IconUser size={15} /></span>
+                    <span className="userIcon">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : <IconUser size={15} />}
+                    </span>
                 </div>
 
                 {isOpen && (
                     <div className="dropDown">
+                        {user && (
+                            <>
+                                <div className="dropDownUser">
+                                    <p className="dropDownUserName">{user.name}</p>
+                                    <p className="dropDownUserEmail">{user.email}</p>
+                                </div>
+                                <div className="dropDownDivider" />
+                            </>
+                        )}
                         <p className="dropDownLabel"><IconSwatches size={13} /> Appearance</p>
                         <div className="swatchRow">
                             {THEMES.map(t => (
@@ -232,7 +224,10 @@ function ChatWindow() {
                         )}
                         <div className="dropDownItem"><IconSettings size={15} /> Settings</div>
                         <div className="dropDownItem"><IconSpark size={15} /> Upgrade plan</div>
-                        <div className="dropDownItem dropDownItem--danger" onClick={logout}>
+                        <div
+                            className="dropDownItem dropDownItem--danger"
+                            onClick={() => { setIsOpen(false); onLogout?.(); }}
+                        >
                             <IconLogout size={15} /> Log out
                         </div>
                     </div>
@@ -241,8 +236,12 @@ function ChatWindow() {
 
             {newChat && prevChats.length === 0 ? (
                 <div className="hero">
+                    <div className="heroBlobs" aria-hidden="true">
+                        <span className="heroBlob heroBlob--a" />
+                        <span className="heroBlob heroBlob--b" />
+                    </div>
                     <Logo size={56} animated className="heroMark" />
-                    <h1 className="heroTitle">{getGreeting()}, {firstName}</h1>
+                    <h1 className="heroTitle">What's on your mind?</h1>
                     <p className="heroSub">Ask anything — Amanuensis is ready when you are.</p>
                     <div className="starterRow">
                         {STARTERS.map((s, i) => (

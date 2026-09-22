@@ -1,4 +1,5 @@
-const API_BASE = "http://localhost:8080";
+// Vite uses import.meta.env for environment variables
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 const TOKEN_KEY = "amanuensis-token";
 
 export function getToken() {

@@ -62,6 +62,59 @@
     transform: translateY(0) scale(0.98);
 }
 
+/* Sidebar nav (Projects / Artifacts) — placeholders for now, styled like
+   Claude's sidebar nav items but clearly non-interactive. */
+
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 0.7rem;
+    margin-bottom: 0.6rem;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
+    color: var(--faint);
+    font-size: 0.85rem;
+    cursor: not-allowed;
+    text-align: left;
+}
+
+.navItem span:first-of-type {
+    flex: 1;
+}
+
+.navBadge {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--faint);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 0.15rem 0.4rem;
+    border-radius: var(--radius-pill);
+    flex: 0 0 auto;
+}
+
+.navItem--upgrade {
+    color: var(--grad-a);
+    cursor: pointer;
+}
+
+.navItem--upgrade:hover {
+    background: var(--accent-soft);
+    color: var(--paper);
+}
+
 /* Threads */
 
 .threadsBlock {

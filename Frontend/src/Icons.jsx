@@ -157,3 +157,28 @@ export function IconSwatches({ size = 15, ...rest }) {
     </svg>
   );
 }
+
+export function IconFolder({ size = 16, ...rest }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} {...rest}>
+      <path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
+    </svg>
+  );
+}
+
+export function IconArtifact({ size = 16, ...rest }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} {...rest}>
+      <path d="M9 8l-4 4 4 4" />
+      <path d="M15 8l4 4-4 4" />
+    </svg>
+  );
+}
+
+export function IconClose({ size = 18, ...rest }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...base} {...rest}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}

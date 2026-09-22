@@ -1,6 +1,7 @@
 import "./ChatWindow.css";
 import Chat from "./Chat.jsx";
 import Logo from "./Logo.jsx";
+import UpgradeModal from "./UpgradeModal.jsx";
 import { MyContext } from "./MyContext.jsx";
 import { useContext, useState, useEffect, useRef } from "react";
 import {
@@ -30,7 +31,7 @@ function ChatWindow() {
         prompt, setPrompt, reply, setReply, currThreadId,
         setPrevChats, newChat, setNewChat, prevChats,
         sidebarOpen, setSidebarOpen, theme, setTheme,
-        user, onLogout,
+        user, onLogout, showUpgrade, setShowUpgrade,
     } = useContext(MyContext);
 
     const [loading, setLoading] = useState(false);
@@ -223,7 +224,12 @@ function ChatWindow() {
                             </div>
                         )}
                         <div className="dropDownItem"><IconSettings size={15} /> Settings</div>
-                        <div className="dropDownItem"><IconSpark size={15} /> Upgrade plan</div>
+                        <div
+                            className="dropDownItem"
+                            onClick={() => { setIsOpen(false); setShowUpgrade(true); }}
+                        >
+                            <IconSpark size={15} /> Upgrade plan
+                        </div>
                         <div
                             className="dropDownItem dropDownItem--danger"
                             onClick={() => { setIsOpen(false); onLogout?.(); }}
@@ -298,9 +304,10 @@ function ChatWindow() {
                     Amanuensis can make mistakes. Check important info.
                 </p>
             </div>
+
+            {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
         </div>
     );
 }
 
 export default ChatWindow;
-

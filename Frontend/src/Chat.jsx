@@ -11,6 +11,7 @@ import "katex/dist/katex.min.css";
 import Logo from "./Logo.jsx";
 import { IconCopy, IconCheck, IconVolume, IconVolumeOff, IconRefresh } from "./icons.jsx";
 import { isVoiceOutputSupported, speak, stopSpeaking } from "./utils/speech.js";
+import { normalizeLatexDelimiters } from "./utils/markdown.js";
 
 const voiceOutSupported = isVoiceOutputSupported();
 
@@ -121,7 +122,7 @@ function Chat({ onRegenerate, loading }) {
                             <Logo size={24} className="gptAvatar" />
                             <div className="gptMessageCol">
                                 <div className="gptMessage">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{chat.content}</ReactMarkdown>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{normalizeLatexDelimiters(chat.content)}</ReactMarkdown>
                                 </div>
                                 <MessageActions
                                     idx={idx} content={chat.content}
@@ -142,7 +143,7 @@ function Chat({ onRegenerate, loading }) {
                         <Logo size={24} className="gptAvatar" />
                         <div className="gptMessageCol">
                             <div className="gptMessage">
-                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{finalContent}</ReactMarkdown>
+                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{normalizeLatexDelimiters(finalContent)}</ReactMarkdown>
                             </div>
                             {!isTyping && (
                                 <MessageActions

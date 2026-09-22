@@ -2,7 +2,7 @@ import "./Sidebar.css";
 import { useContext, useEffect } from "react";
 import { MyContext } from "./MyContext.jsx";
 import { v1 as uuidv1 } from "uuid";
-import { IconCompose, IconTrash } from "./icons.jsx";
+import { IconCompose, IconTrash, IconFolder, IconArtifact, IconSpark } from "./icons.jsx";
 import Logo from "./Logo.jsx";
 import { api } from "./utils/api.js";
 
@@ -11,7 +11,7 @@ function Sidebar() {
         allThreads, setAllThreads,
         currThreadId, setCurrThreadId,
         setNewChat, setPrompt, setReply, setPrevChats,
-        sidebarOpen,
+        sidebarOpen, setShowUpgrade,
     } = useContext(MyContext);
 
     const getAllThreads = async () => {
@@ -77,6 +77,23 @@ function Sidebar() {
                 <IconCompose size={16} />
                 <span>New chat</span>
             </button>
+
+            <nav className="sidebarNav">
+                <button className="navItem" disabled title="Coming soon">
+                    <IconFolder size={16} />
+                    <span>Projects</span>
+                    <span className="navBadge">Soon</span>
+                </button>
+                <button className="navItem" disabled title="Coming soon">
+                    <IconArtifact size={16} />
+                    <span>Artifacts</span>
+                    <span className="navBadge">Soon</span>
+                </button>
+                <button className="navItem navItem--upgrade" onClick={() => setShowUpgrade(true)}>
+                    <IconSpark size={16} />
+                    <span>Upgrade</span>
+                </button>
+            </nav>
 
             <div className="threadsBlock">
                 <p className="threadsEyebrow">Recent</p>

@@ -25,6 +25,7 @@ function App() {
 
   const [user, setUser] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // Apply + persist the chosen theme.
   useEffect(() => {
@@ -88,6 +89,7 @@ function App() {
     sidebarOpen, setSidebarOpen,
     theme, setTheme,
     user, onLogout: handleLogout,
+    showUpgrade, setShowUpgrade,
   };
 
   if (checkingAuth) {

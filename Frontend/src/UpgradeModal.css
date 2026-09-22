@@ -1,0 +1,175 @@
+.upgradeOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(5, 3, 10, 0.6);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: popIn 0.15s ease;
+}
+
+.upgradeCard {
+    width: 100%;
+    max-width: 980px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 1.6rem;
+}
+
+.upgradeHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+}
+
+.upgradeHeader h2 {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.upgradeClose {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.upgradeClose:hover {
+    background: var(--panel-2);
+    color: var(--paper);
+}
+
+.upgradeNotice {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-ring);
+    color: var(--paper);
+    font-size: 0.85rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.1rem;
+}
+
+.upgradeGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.planCard {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.3rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.planCard--highlight {
+    border-color: transparent;
+    background:
+        linear-gradient(var(--panel-2), var(--panel-2)) padding-box,
+        var(--gradient) border-box;
+    border: 2px solid transparent;
+}
+
+.planName {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.planTagline {
+    font-size: 0.8rem;
+    color: var(--faint);
+    margin-top: 0.15rem;
+}
+
+.planPrice {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--paper);
+    margin: 1rem 0 1.1rem;
+}
+
+.planPeriod {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--faint);
+}
+
+.planBtn {
+    width: 100%;
+    padding: 0.65rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    color: var(--paper);
+    margin-bottom: 1.1rem;
+    transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.planBtn:hover:not(:disabled) {
+    filter: brightness(1.15);
+}
+
+.planBtn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.planBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.planBtn--primary {
+    background: var(--gradient);
+    color: var(--on-accent);
+    border: none;
+}
+
+.planFeatures {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.planFeatures li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.planFeatures li svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--grad-a);
+}
+
+@media (max-width: 760px) {
+    .upgradeGrid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,5 +1,5 @@
-// Vite uses import.meta.env for environment variables
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+// Using your live Vercel backend as the default fallback
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://amanuensis-ai-chatbot-86xc.vercel.app";
 const TOKEN_KEY = "amanuensis-token";
 
 export function getToken() {

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { api, setToken } from "./utils/api";
 import "./AuthPage.css";
 
-export default function AuthPage({ onAuthSuccess }) {
+export default function AuthPage({ onAuthSuccess, onAuth }) {
   const [isSignup, setIsSignup] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,8 +27,11 @@ export default function AuthPage({ onAuthSuccess }) {
       }
 
       setToken(data.token);
-      if (onAuthSuccess) {
-        onAuthSuccess(data.user);
+      
+      // Call whichever handler prop App.jsx passed
+      const handleSuccess = onAuthSuccess || onAuth;
+      if (handleSuccess) {
+        handleSuccess(data.user);
       }
     } catch (err) {
       setError(err.message);
@@ -51,7 +54,6 @@ export default function AuthPage({ onAuthSuccess }) {
         </div>
 
         <div className="hero-content">
-          {/* Live SVG/CSS Interactive Mockup */}
           <div className="preview-card">
             <div className="preview-header">
               <span className="dot red"></span>

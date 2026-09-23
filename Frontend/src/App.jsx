@@ -33,8 +33,6 @@ function App() {
   }, [theme]);
 
   // On load: if a token is stored, ask the backend whether it's still good
-  // and fetch the user it belongs to. Otherwise skip straight to the login
-  // screen instead of flashing the main app first.
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -55,8 +53,7 @@ function App() {
     })();
   }, []);
 
-  // Any request that comes back 401 mid-session (expired token, etc.) drops
-  // the user back to the login screen instead of failing silently.
+  // Any request that comes back 401 mid-session drops user back to login screen
   useEffect(() => {
     const handleUnauthorized = () => setUser(null);
     window.addEventListener("amanuensis-unauthorized", handleUnauthorized);
@@ -98,7 +95,7 @@ function App() {
   }
 
   if (!user) {
-    return <AuthPage onAuth={handleAuthSuccess} />;
+    return <AuthPage onAuth={handleAuthSuccess} onAuthSuccess={handleAuthSuccess} />;
   }
 
   return (

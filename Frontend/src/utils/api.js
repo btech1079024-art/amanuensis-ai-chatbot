@@ -1,4 +1,6 @@
-// Using your live Vercel backend as the default fallback
+// Falls back to the live Vercel backend if VITE_API_BASE_URL isn't set —
+// so unset it locally (or point it at http://localhost:8080 in a .env) if
+// you want local frontend dev to hit your local backend instead of prod.
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://amanuensis-ai-chatbot-86xc.vercel.app";
 const TOKEN_KEY = "amanuensis-token";
 
@@ -37,3 +39,49 @@ export const api = {
     post: (path, body) => request(path, { method: "POST", body: JSON.stringify(body) }),
     del: (path) => request(path, { method: "DELETE" }),
 };
+
+// Reads a fetch Response whose body is a stream of
+// `data: {"chunk":"..."}` / `data: {"done":true}` / `data: {"error":"..."}`
+// lines (as sent by POST /api/chat), calling onProgress with the text
+// assembled so far after every chunk. Resolves with the full final text.
+// Throws if the stream reports an error.
+export async function readSSEStream(response, onProgress) {
+    if (!response.body) return "";
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let assembled = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop(); // keep the last, possibly-incomplete line for next read
+
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+
+            const payload = trimmed.slice(5).trim();
+            if (!payload) continue;
+
+            let parsed;
+            try {
+                parsed = JSON.parse(payload);
+            } catch {
+                continue;
+            }
+
+            if (parsed.error) throw new Error(parsed.error);
+            if (parsed.chunk) {
+                assembled += parsed.chunk;
+                onProgress?.(assembled);
+            }
+        }
+    }
+
+    return assembled;
+}

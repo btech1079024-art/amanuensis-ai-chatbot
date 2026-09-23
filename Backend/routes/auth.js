@@ -1,10 +1,18 @@
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import verifyToken from "../middleware/auth.js";
 
 const router = express.Router();
+
+// Helper to ensure MongoDB is connected before running database queries on Vercel
+const ensureDBConnected = async () => {
+    if (mongoose.connection.readyState !== 1) {
+        await mongoose.connect(process.env.MONGODB_URI);
+    }
+};
 
 router.post("/signup", async (req, res) => {
     const { name, email, password } = req.body;
@@ -17,6 +25,8 @@ router.post("/signup", async (req, res) => {
     }
 
     try {
+        await ensureDBConnected();
+
         const existing = await User.findOne({ email: email.toLowerCase().trim() });
         if (existing) {
             return res.status(409).json({ error: "An account with this email already exists" });
@@ -42,6 +52,8 @@ router.post("/login", async (req, res) => {
     }
 
     try {
+        await ensureDBConnected();
+
         const user = await User.findOne({ email: email.toLowerCase().trim() });
         if (!user) {
             return res.status(401).json({ error: "Invalid email or password" });
@@ -64,6 +76,8 @@ router.post("/login", async (req, res) => {
 // and get back fresh user info, without forcing a login every refresh.
 router.get("/me", verifyToken, async (req, res) => {
     try {
+        await ensureDBConnected();
+
         const user = await User.findById(req.userId).select("-password");
         if (!user) {
             return res.status(404).json({ error: "User not found" });

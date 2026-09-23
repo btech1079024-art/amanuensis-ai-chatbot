@@ -12,7 +12,6 @@ const THEME_KEY = "amanuensis-theme";
 
 function App() {
   const [prompt, setPrompt] = useState("");
-  const [reply, setReply] = useState(null);
   const [currThreadId, setCurrThreadId] = useState(uuidv1());
   const [prevChats, setPrevChats] = useState([]); // all chats of current thread
   const [newChat, setNewChat] = useState(true);
@@ -72,7 +71,6 @@ function App() {
     setToken(null);
     setUser(null);
     setPrompt("");
-    setReply(null);
     setPrevChats([]);
     setAllThreads([]);
     setNewChat(true);
@@ -81,7 +79,6 @@ function App() {
 
   const providerValues = {
     prompt, setPrompt,
-    reply, setReply,
     currThreadId, setCurrThreadId,
     newChat, setNewChat,
     prevChats, setPrevChats,

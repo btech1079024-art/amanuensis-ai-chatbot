@@ -10,7 +10,7 @@ function Sidebar() {
     const {
         allThreads, setAllThreads,
         currThreadId, setCurrThreadId,
-        setNewChat, setPrompt, setReply, setPrevChats,
+        setNewChat, setPrompt, setPrevChats,
         sidebarOpen, setShowUpgrade,
     } = useContext(MyContext);
 
@@ -33,7 +33,6 @@ function Sidebar() {
     const createNewChat = () => {
         setNewChat(true);
         setPrompt("");
-        setReply(null);
         setCurrThreadId(uuidv1());
         setPrevChats([]);
     };
@@ -46,7 +45,6 @@ function Sidebar() {
             const res = await response.json();
             setPrevChats(res);
             setNewChat(false);
-            setReply(null);
         } catch (err) {
             console.log(err);
         }

@@ -52,9 +52,12 @@ function MessageActions({ idx, content, copiedIdx, onCopy, speakingIdx, onReadAl
     );
 }
 
+// `loading` = a request is in flight. Since replies now stream in for real
+// (no more fake word-by-word typing), the only thing this component needs
+// to know is whether the LAST message is still actively receiving chunks,
+// so it can hide that one message's action row until it's done.
 function Chat({ onRegenerate, loading }) {
-    const { prevChats, reply, currThreadId } = useContext(MyContext);
-    const [latestReply, setLatestReply] = useState(null);
+    const { prevChats, currThreadId } = useContext(MyContext);
     const [copiedIdx, setCopiedIdx] = useState(null);
     const [speakingIdx, setSpeakingIdx] = useState(null);
     const bottomRef = useRef(null);
@@ -66,26 +69,8 @@ function Chat({ onRegenerate, loading }) {
     }, [currThreadId]);
 
     useEffect(() => {
-        if (reply === null) {
-            setLatestReply(null); // loaded from history, no typing effect
-            return;
-        }
-        if (!prevChats?.length) return;
-
-        const content = reply.split(" ");
-        let idx = 0;
-        const interval = setInterval(() => {
-            setLatestReply(content.slice(0, idx + 1).join(" "));
-            idx++;
-            if (idx >= content.length) clearInterval(interval);
-        }, 40);
-
-        return () => clearInterval(interval);
-    }, [prevChats, reply]);
-
-    useEffect(() => {
         bottomRef.current?.scrollIntoView({ block: "end" });
-    }, [latestReply, prevChats]);
+    }, [prevChats]);
 
     useEffect(() => () => stopSpeaking(), []);
 
@@ -110,10 +95,11 @@ function Chat({ onRegenerate, loading }) {
     };
 
     const lastIdx = prevChats.length - 1;
+    const isLastStreaming = loading && prevChats[lastIdx]?.role === "assistant";
 
     return (
         <div className="chats">
-            {prevChats?.slice(0, -1).map((chat, idx) => (
+            {prevChats.map((chat, idx) => (
                 <div className={chat.role === "user" ? "userDiv" : "gptDiv"} key={idx}>
                     {chat.role === "user" ? (
                         <p className="userMessage">{chat.content}</p>
@@ -122,41 +108,24 @@ function Chat({ onRegenerate, loading }) {
                             <Logo size={24} className="gptAvatar" />
                             <div className="gptMessageCol">
                                 <div className="gptMessage">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{normalizeLatexDelimiters(chat.content)}</ReactMarkdown>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>
+                                        {normalizeLatexDelimiters(chat.content)}
+                                    </ReactMarkdown>
                                 </div>
-                                <MessageActions
-                                    idx={idx} content={chat.content}
-                                    copiedIdx={copiedIdx} onCopy={handleCopy}
-                                    speakingIdx={speakingIdx} onReadAloud={handleReadAloud}
-                                />
+                                {!(idx === lastIdx && isLastStreaming) && (
+                                    <MessageActions
+                                        idx={idx} content={chat.content}
+                                        copiedIdx={copiedIdx} onCopy={handleCopy}
+                                        speakingIdx={speakingIdx} onReadAloud={handleReadAloud}
+                                        showRegenerate={idx === lastIdx && !!onRegenerate}
+                                        onRegenerate={onRegenerate} regenerating={loading}
+                                    />
+                                )}
                             </div>
                         </>
                     )}
                 </div>
             ))}
-
-            {prevChats.length > 0 && (() => {
-                const finalContent = latestReply === null ? prevChats[lastIdx].content : latestReply;
-                const isTyping = latestReply !== null;
-                return (
-                    <div className="gptDiv" key={isTyping ? "typing" : "non-typing"}>
-                        <Logo size={24} className="gptAvatar" />
-                        <div className="gptMessageCol">
-                            <div className="gptMessage">
-                                <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeHighlight, rehypeKatex]} components={mdComponents}>{normalizeLatexDelimiters(finalContent)}</ReactMarkdown>
-                            </div>
-                            {!isTyping && (
-                                <MessageActions
-                                    idx={lastIdx} content={finalContent}
-                                    copiedIdx={copiedIdx} onCopy={handleCopy}
-                                    speakingIdx={speakingIdx} onReadAloud={handleReadAloud}
-                                    showRegenerate={!!onRegenerate} onRegenerate={onRegenerate} regenerating={loading}
-                                />
-                            )}
-                        </div>
-                    </div>
-                );
-            })()}
             <div ref={bottomRef} />
         </div>
     );

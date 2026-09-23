@@ -9,7 +9,7 @@ import {
     IconSend, IconMic, IconVolume, IconVolumeOff, IconSwatches,
 } from "./icons.jsx";
 import { getSpeechRecognition, isVoiceOutputSupported, speak, stopSpeaking } from "./utils/speech.js";
-import { api } from "./utils/api.js";
+import { api, readSSEStream } from "./utils/api.js";
 
 const STARTERS = [
     "Explain a tricky concept simply",
@@ -28,7 +28,7 @@ const AUTOREAD_KEY = "amanuensis-autoread";
 
 function ChatWindow() {
     const {
-        prompt, setPrompt, reply, setReply, currThreadId,
+        prompt, setPrompt, currThreadId,
         setPrevChats, newChat, setNewChat, prevChats,
         sidebarOpen, setSidebarOpen, theme, setTheme,
         user, onLogout, showUpgrade, setShowUpgrade,
@@ -71,11 +71,6 @@ function ChatWindow() {
         localStorage.setItem(AUTOREAD_KEY, String(autoRead));
     }, [autoRead]);
 
-    // Read replies aloud when auto-read is on.
-    useEffect(() => {
-        if (autoRead && reply) speak(reply);
-    }, [reply, autoRead]);
-
     useEffect(() => () => stopSpeaking(), []);
     useEffect(() => { stopSpeaking(); }, [currThreadId]);
 
@@ -110,57 +105,85 @@ function ChatWindow() {
             setListening(false);
         }
 
-        setLoading(true);
+        const userMessage = prompt;
+        setPrompt("");
         setNewChat(false);
+        setLoading(true);
+
+        // Show the user's message immediately, and a placeholder for the
+        // reply that fills in as chunks arrive — no more waiting for the
+        // full response before anything appears.
+        setPrevChats(prev => [
+            ...prev,
+            { role: "user", content: userMessage },
+            { role: "assistant", content: "" },
+        ]);
 
         try {
-            const response = await api.post("/api/chat", { message: prompt, threadId: currThreadId });
+            const response = await api.post("/api/chat", { message: userMessage, threadId: currThreadId });
             if (!response.ok) throw new Error("Request failed");
-            const res = await response.json();
-            setReply(res.reply);
+
+            const finalText = await readSSEStream(response, (assembled) => {
+                setPrevChats(prev => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { role: "assistant", content: assembled };
+                    return updated;
+                });
+            });
+
+            if (autoRead) speak(finalText);
         } catch (err) {
             console.log(err);
+            setPrevChats(prev => {
+                const updated = [...prev];
+                const lastMsg = updated[updated.length - 1];
+                if (lastMsg?.role === "assistant" && !lastMsg.content) {
+                    updated[updated.length - 1] = { role: "assistant", content: "_Something went wrong — please try again._" };
+                }
+                return updated;
+            });
         }
         setLoading(false);
     };
 
-    // Append new chat to prevChats
-    useEffect(() => {
-        if (prompt && reply) {
-            setPrevChats(prevChats => ([
-                ...prevChats,
-                { role: "user", content: prompt },
-                { role: "assistant", content: reply },
-            ]));
-        }
-        setPrompt("");
-    }, [reply]);
-
-    // Re-send the last user message and swap the last assistant reply for a
-    // fresh one — deliberately bypasses the reply/prompt state above so it
-    // can't duplicate the user turn.
+    // Re-generates the last assistant reply in place. The backend drops the
+    // stale reply and re-streams a fresh one using the same conversation
+    // history — it does NOT duplicate the user's turn.
     const regenerate = async () => {
-        if (loading) return;
-        const lastUser = [...prevChats].reverse().find(c => c.role === "user");
-        if (!lastUser) return;
+        if (loading || !prevChats.length) return;
 
         setLoading(true);
+        setPrevChats(prev => {
+            const updated = [...prev];
+            if (updated[updated.length - 1]?.role === "assistant") {
+                updated[updated.length - 1] = { role: "assistant", content: "" };
+            }
+            return updated;
+        });
+
         try {
-            const response = await api.post("/api/chat", { message: lastUser.content, threadId: currThreadId });
+            const response = await api.post("/api/chat", { threadId: currThreadId, regenerate: true });
             if (!response.ok) throw new Error("Request failed");
-            const res = await response.json();
+
+            const finalText = await readSSEStream(response, (assembled) => {
+                setPrevChats(prev => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { role: "assistant", content: assembled };
+                    return updated;
+                });
+            });
+
+            if (autoRead) speak(finalText);
+        } catch (err) {
+            console.log(err);
             setPrevChats(prev => {
                 const updated = [...prev];
-                for (let i = updated.length - 1; i >= 0; i--) {
-                    if (updated[i].role === "assistant") {
-                        updated[i] = { role: "assistant", content: res.reply };
-                        break;
-                    }
+                const lastMsg = updated[updated.length - 1];
+                if (lastMsg?.role === "assistant" && !lastMsg.content) {
+                    updated[updated.length - 1] = { role: "assistant", content: "_Something went wrong — please try again._" };
                 }
                 return updated;
             });
-        } catch (err) {
-            console.log(err);
         }
         setLoading(false);
     };
@@ -169,6 +192,9 @@ function ChatWindow() {
         setPrompt(text);
         inputRef.current?.focus();
     };
+
+    const lastChat = prevChats[prevChats.length - 1];
+    const showThinking = loading && (!lastChat || lastChat.role !== "assistant" || !lastChat.content);
 
     return (
         <div className="chatWindow">
@@ -261,7 +287,7 @@ function ChatWindow() {
                 <Chat onRegenerate={regenerate} loading={loading} />
             )}
 
-            {loading && (
+            {showThinking && (
                 <div className="thinking" aria-live="polite">
                     <span className="thinkingBlob" />
                     <span className="thinkingText">Amanuensis is thinking…</span>

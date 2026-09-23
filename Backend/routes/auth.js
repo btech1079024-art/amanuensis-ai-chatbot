@@ -7,7 +7,6 @@ import verifyToken from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Helper to ensure MongoDB is connected before running database queries on Vercel
 const ensureDBConnected = async () => {
     if (mongoose.connection.readyState !== 1) {
         await mongoose.connect(process.env.MONGODB_URI);
@@ -72,8 +71,6 @@ router.post("/login", async (req, res) => {
     }
 });
 
-// Lets the frontend check "is this stored token still valid?" on page load,
-// and get back fresh user info, without forcing a login every refresh.
 router.get("/me", verifyToken, async (req, res) => {
     try {
         await ensureDBConnected();
